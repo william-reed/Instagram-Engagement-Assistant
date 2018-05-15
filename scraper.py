@@ -2,11 +2,28 @@ from sqlalchemy imoprt create_engine
 from sqlalchemy.orm import sessionmaker
 
 import logging
-# TODO: import config and setup packages
+import sys
+import config
+import models
+
+# expects to be run as 'python scraper.py user1 user2 ...'
 
 if __name__ == "__main__":
 	logger = logging.getLogger("insta_engagement_scraper")
 	logger.setLevel(config.debug_level)
+
+	# gather arguments
+	if len(sys.argv == 1):
+		logger.error("No input arguments supplied")
+		logger.error("Try running as 'python scraper.py <user1> <user2> ...")
+		logger.error("Goodbye")
+		logger.flush()
+		logger.close()
+		exit(1)
+
+	# first arg is program name so we don't care about that, just the rest
+	users = str(sys.argv)[1:]
+	logger.info("Users loaded from input arguments")
 
 	engine = create_engine(config.db_connection)
 	logger.debug("Database engine created")
