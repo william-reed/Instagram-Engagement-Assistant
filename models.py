@@ -7,7 +7,7 @@ Base = declarative_base()
 class Scan(Base):
 	__tablename__ = 'scan'
 
-	scan_id = Column(BigInteger, primary_key=True, autoincrement=True)
+	scan_id = Column(Integer, primary_key=True, autoincrement=True)
 	# same as user_pk from instagram api; the user being scanned
 	instagram_user_id = Column(BigInteger, ForeignKey("instagram_user.instagram_user_id"))
 	timestamp = Column(DateTime, default=datetime.datetime.utcnow)
@@ -33,6 +33,8 @@ class Instagram_User(Base):
 	initiated_scans = relationship("Scan", back_populates="initiating_user")
 	media = relationship("Media", back_populates="instagram_user")
 	comments = relatinoship("Comment", back_populates="instagram_user")
+	caused_interactions = relationship("Interaction", back_populates="interactor")
+	been_interacted_by = relationship("Interaction", back_populates="interacted")
 
 
 # an instagram media entity (photo, video, etc)
@@ -71,5 +73,5 @@ class Interaction(Base):
 	interactor_id = Column(BigInteger, ForeignKey("instagram_user.instagram_user_id"), nullable=False)
 
 	media = relationship("Media")
-	interacted = relationship("Instagram_User")
-	interactor = relationship("Instagram_User")
+	interacted = relationship("Instagram_User", back_populates="been_interacted_by")
+	interactor = relationship("Instagram_User", back_populates="caused_interactions")
