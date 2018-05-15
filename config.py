@@ -1,11 +1,14 @@
 import logging
 import os
 
-mysql_user = os.environ['MYSQL_USER']
-mysql_pass = os.environ['MYSQL_PASS']
-mysql_url = os.environ['MYSQL_URL']
-db_name = os.environ['ENGAGEMENT_DB']
+MYSQL_USER = os.environ['MYSQL_USER']
+MYSQL_PASS = os.environ['MYSQL_PASS']
+MYSQL_URL = os.environ['MYSQL_URL']
+DB_NAME = os.environ['ENGAGEMENT_DB']
 
-db_conneciton = 'mysql://' + mysql_user + ':' + mysql_pass + '@' + mysql_url + '/' + livethread_db
+DB_CONNECTION = 'mysql://' + MYSQL_USER + ':' + MYSQL_PASS + '@' + MYSQL_URL + '/' + DB_NAME
 
-debug_level = logging.DEBUG
+DEBUG_LEVEL = logging.DEBUG
+
+INSTA_USER = os.environ['INSTA_USER']
+INSTA_PASS = os.environ['INSTA_PASS']
