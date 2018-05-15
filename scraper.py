@@ -40,3 +40,41 @@ if __name__ == "__main__":
 	# setup instagram
 	InstagramApi = InstagramAPI(config.INSTA_USER, config.INSTA_PASS)
 	InstagramApi.login()
+
+	###########################################################################
+	## Processing
+	###########################################################################
+	init_scan()
+	user_pks = fetch_users(users, InstagramApi)
+
+
+
+def init_scan():
+
+def fetch_users(usernames, api):
+	"""
+	Fetch the user objects from the api for the given usernames and insert them into the DB
+	:usernames The list of usernames to look at
+	:api The instagram API
+	:returns list of pk's of the given usernames.
+	"""
+	pks = []
+	for username in usernames:
+		api.getInfoByName(username.strip())
+		user = api.LastJson["user"];
+		instagram_user = Instagram_User(instagram_user_id = user["pk"],
+		 username=user["username"],
+		 followers=user['follower_count'],
+		 following=user['following_count'],
+		 is_business=user['is_business'],
+		 is_private=user['is_private'])
+
+		pk.append(instagram_user.instagram_user_id)
+
+		Logger.debug("Got user info for '" + username + "'")
+		# can't make requests too fast
+		time.sleep(config.SLEEP_TIME)
+
+	Logger.debug("Gatered users committed to database")
+	session.commit()
+	return pks

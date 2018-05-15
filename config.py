@@ -12,3 +12,6 @@ DEBUG_LEVEL = logging.DEBUG
 
 INSTA_USER = os.environ['INSTA_USER']
 INSTA_PASS = os.environ['INSTA_PASS']
+
+# time in seconds to sleep between api calls
+SLEEP_TIME = 5
