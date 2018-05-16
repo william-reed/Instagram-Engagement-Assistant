@@ -6,7 +6,9 @@ MYSQL_PASS = os.environ['MYSQL_PASS']
 MYSQL_URL = os.environ['MYSQL_URL']
 DB_NAME = os.environ['ENGAGEMENT_DB']
 
-DB_CONNECTION = 'mysql://' + MYSQL_USER + ':' + MYSQL_PASS + '@' + MYSQL_URL + '/' + DB_NAME
+# ALTER DATABASE engagement CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+DB_CONNECTION = 'mysql://' + MYSQL_USER + ':' + MYSQL_PASS + '@' + MYSQL_URL + '/' \
+	+ DB_NAME + '?charset=utf8mb4'
 
 DEBUG_LEVEL = logging.DEBUG
 
