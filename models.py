@@ -1,21 +1,10 @@
-from sqlalchemy import Column, BigInteger, DateTime, Integer, String, Boolean
+from sqlalchemy import Column, BigInteger, DateTime, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
+
+import datetime
 
 Base = declarative_base()
-
-# representative of a particular scan or scraping instance
-class Scan(Base):
-	__tablename__ = 'scan'
-
-	scan_id = Column(Integer, primary_key=True, autoincrement=True)
-	# same as user_pk from instagram api; the user being scanned
-	instagram_user_id = Column(BigInteger, ForeignKey("instagram_user.instagram_user_id"))
-	timestamp = Column(DateTime, default=datetime.datetime.utcnow)
-	# the client user that initiated this scan
-	initiated_by = Column(Integer, ForeignKey("instagram_user.instagram_user_id"))
-
-	scanned_user = relationship("Instagram_User", back_populates="scanned_by")
-	initiating_user = relationship("Instagram_User", back_populates="initiated_scans")
 
 # an instagram account
 class Instagram_User(Base):
@@ -29,12 +18,32 @@ class Instagram_User(Base):
 	is_business = Column(Boolean, nullable=False)
 	is_private = Column(Boolean, nullable=False)
 
-	scanned_by = relationship("Scan", back_populates="scanned_user")
-	initiated_scans = relationship("Scan", back_populates="initiating_user")
+	scanned_by = relationship("Scan", back_populates="scanned_user",
+		foreign_keys="Scan.instagram_user_id")
+	initiated_scans = relationship("Scan", back_populates="initiating_user",
+		foreign_keys="Scan.initiated_by")
 	media = relationship("Media", back_populates="instagram_user")
-	comments = relatinoship("Comment", back_populates="instagram_user")
-	caused_interactions = relationship("Interaction", back_populates="interactor")
-	been_interacted_by = relationship("Interaction", back_populates="interacted")
+	comments = relationship("Comment", back_populates="instagram_user")
+	caused_interactions = relationship("Interaction", back_populates="interactor",
+		foreign_keys="Interaction.interactor_id")
+	been_interacted_by = relationship("Interaction", back_populates="interacted",
+		foreign_keys="Interaction.interacted_id")
+
+# representative of a particular scan or scraping instance
+class Scan(Base):
+	__tablename__ = 'scan'
+
+	scan_id = Column(Integer, primary_key=True, autoincrement=True)
+	# same as user_pk from instagram api; the user being scanned
+	instagram_user_id = Column(BigInteger, ForeignKey("instagram_user.instagram_user_id"))
+	timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+	# the client user that initiated this scan
+	initiated_by = Column(BigInteger, ForeignKey("instagram_user.instagram_user_id"))
+
+	scanned_user = relationship("Instagram_User", back_populates="scanned_by",
+		foreign_keys="Scan.instagram_user_id")
+	initiating_user = relationship("Instagram_User", back_populates="initiated_scans",
+		foreign_keys="Scan.initiated_by")
 
 
 # an instagram media entity (photo, video, etc)
@@ -75,5 +84,7 @@ class Interaction(Base):
 	interactor_id = Column(BigInteger, ForeignKey("instagram_user.instagram_user_id"), nullable=False)
 
 	media = relationship("Media")
-	interacted = relationship("Instagram_User", back_populates="been_interacted_by")
-	interactor = relationship("Instagram_User", back_populates="caused_interactions")
+	interacted = relationship("Instagram_User", back_populates="been_interacted_by",
+		foreign_keys="Interaction.interacted_id")
+	interactor = relationship("Instagram_User", back_populates="caused_interactions",
+		foreign_keys="Interaction.interactor_id")
