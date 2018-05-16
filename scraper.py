@@ -38,7 +38,11 @@ def fetch_users(usernames, caller_username, api, session, force_update=False):
 	for username in usernames:
 		user_pk = fetch_user(username, api, session, force_update)
 
+		if user_pk == None:
+			continue
+
 		if username != caller_username:
+
 			pks.append(user_pk)
 
 			# create scan row
@@ -58,8 +62,15 @@ def fetch_user(username, api, session, force_update=False):
 	:session the dbsession
 	:returns the user pk
 	"""
-	api.getInfoByName(username.strip())
-	user = api.LastJson["user"];
+	try:
+		api.getInfoByName(username.strip())
+		user = api.LastJson["user"];
+	except KeyError:
+		# key error shows the user is not found
+		logger.warn("User '" + username + "' not found")
+		return
+
+	
 	user_pk = user["pk"]
 
 	# does the DB contain the user_pk?
@@ -224,10 +235,11 @@ session.commit()
 session.close()
 api.logout()
 
-logger.debug("Exiting succesfully. Goodbye")
+logger.info("Exiting succesfully. Goodbye")
 logging.shutdown()
 
 # TODO
 # Auto update if data older than a week?
 # looks like sleeping is dropping ig connections
 # auto setup charset
+# handling posts with lots of comments
