@@ -38,9 +38,6 @@ def fetch_users(usernames, caller_username, api, session, force_update=False):
 	for username in usernames:
 		user_pk = fetch_user(username, api, session, force_update)
 
-		if user_pk == None:
-			continue
-
 		if username != caller_username:
 			pks.append(user_pk)
 
@@ -68,8 +65,9 @@ def fetch_user(username, api, session, force_update=False):
 	# does the DB contain the user_pk?
 	# would demorgans make this more readable?
 	if session.query(Instagram_User).get(user_pk) != None and not force_update:
-		# skip this instance since they are already in the db and we are not updating them
-		return
+		# just return the pk since we want to scan this users new posts but don't
+		# want to update their information
+		return user_pk
 
 	instagram_user = Instagram_User(instagram_user_id = user["pk"],
 	 username=user["username"],
