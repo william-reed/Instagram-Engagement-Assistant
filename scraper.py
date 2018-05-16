@@ -52,6 +52,11 @@ if __name__ == "__main__":
 	commenter_pks = fetch_comments(media_pks, api, session)
 	fetch_users(commenter_pks, api, session)
 
+	session.commit()
+	session.close()
+
+	Logger.debug("Exiting succesfully. Goodbye")
+	Logger.shutdown()
 
 
 
@@ -66,6 +71,7 @@ def fetch_users(usernames, api, session, force_update=False):
 	:force_update if true the queries will overide previous user entries in the db to update them
 	:returns list of pk's of the given usernames.
 	"""
+	Logger.info("Fetching users")
 	pks = []
 	for username in usernames:
 		api.getInfoByName(username.strip())
@@ -104,6 +110,7 @@ def fetch_media(user_pks, api, session, force_update=False):
 	:force_update if true the queries will overide previous user entries in the db to update them
 	:returns a list of media pk's
 	"""
+	Logger.info("Fetching media")
 	pks = []
 	for user_pk in user_pks:
 		api.getUserFeed(user_pk)
@@ -124,6 +131,8 @@ def fetch_media(user_pks, api, session, force_update=False):
 				instagram_user_id=user_pk,
 				is_picture=is_picture)
 
+			Logger.debug("Got media " + str(media_pk) + " for user " + user_pk)
+
 		# can't make requests too fast
 		time.sleep(config.SLEEP_TIME)
 		session.commit()
@@ -140,6 +149,7 @@ def fetch_comments(media_pks, api, session):
 	:session the db session
 	:returns a set of users which exist in the comments for the given media picutres
 	"""
+	Logger.info("Fetching comments")
 	user_pks = set()
 
 	for media_pk in media_pks:
@@ -166,6 +176,8 @@ def fetch_comments(media_pks, api, session):
 				instagram_user_id=commenter_pk,
 				text=comment["text"],
 				type=comment["type"])
+
+			Logger.debug("Got comment '" + comment["text"] + "' from user " + commenter_pk)
 
 		# can't make requests too fast
 		time.sleep(config.SLEEP_TIME)
