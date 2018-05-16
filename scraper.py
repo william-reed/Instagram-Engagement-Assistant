@@ -47,7 +47,10 @@ if __name__ == "__main__":
 	## Processing
 	###########################################################################
 	init_scan()
-	user_pks = fetch_users(users, api)
+	user_pks = fetch_users(users, api, session)
+	media_pks = fetch_media(user_pks, api, session)
+	commenter_pks = fetch_comments(media_pks, api, session)
+	fetch_users(commenter_pks, api, session)
 
 
 
@@ -121,7 +124,52 @@ def fetch_media(user_pks, api, session, force_update=False):
 				instagram_user_id=user_pk,
 				is_picture=is_picture)
 
+		# can't make requests too fast
+		time.sleep(config.SLEEP_TIME)
 		session.commit()
-		
+
 	session.commit()
 	return pks
+
+def fetch_comments(media_pks, api, session):
+	"""
+	Fetch the comments for each of the given media ids. Update the DB with these comments.
+	If duplicate comment pk's exist - they are ignored. No reason to re process those
+	:media_pks the media primary keys to scan
+	:api the instagram api
+	:session the db session
+	:returns a set of users which exist in the comments for the given media picutres
+	"""
+	user_pks = set()
+
+	for media_pk in media_pks:
+		api.getMediaComments(media_pk)
+
+		comments = api.LastJson["comments"]
+		poster_id = session.query(Media).get(media_pk).instagram_user.instagram_user_id
+
+		for comment in comments:
+			comment_pk = comment["pk"]
+			commenter_pk = comment["comment_pk"]
+
+			# ignoring if they comment on their own post
+			if commenter_pk == poster_id:
+				continue
+
+			# if in db already, ignore it. 
+			if session.query(Comments).get(comment_pk) != None:
+				continue
+
+			user_pks.add(commenter_pk)
+			instagram_comment = Comment(comment_id=comment_pk,
+				media_id=media_pk,
+				instagram_user_id=commenter_pk,
+				text=comment["text"],
+				type=comment["type"])
+
+		# can't make requests too fast
+		time.sleep(config.SLEEP_TIME)
+		session.commit()
+
+	session.commit()
+	return user_pks

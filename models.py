@@ -57,6 +57,8 @@ class Comment(Base):
 	media_id = Column(BigInteger, ForeignKey("media.media_id"), nullable=False)
 	instagram_user_id = Column(BigInteger, ForeignKey("instagram_user.instagram_user_id"), nullable=False)
 	text = Column(String(length=4096), nullable=False)
+	# comment type. i think 0 is top level, and 2 is a reply
+	type = Column(Integer, nullable=False)
 
 	instagram_user = relationship("Instagram_User", back_populates="comments")
 	media = relationship("Media", back_populates="comments")
