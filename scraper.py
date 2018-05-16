@@ -47,6 +47,7 @@ def fetch_users(usernames, caller_username, api, session, force_update=False):
 			# create scan row
 			scan = Scan(instagram_user_id=user_pk, 
 				initiated_by=caller_user_pk)
+			session.add(scan)
 
 	session.commit()
 	logger.info("Gatered users committed to database")
