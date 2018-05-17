@@ -1,8 +1,9 @@
-from sqlalchemy import Column, BigInteger, DateTime, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, BigInteger, DateTime, Integer, String, Boolean, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 import datetime
+import enum
 
 Base = declarative_base()
 
@@ -72,12 +73,19 @@ class Comment(Base):
 	instagram_user = relationship("Instagram_User", back_populates="comments")
 	media = relationship("Media", back_populates="comments")
 
+# keep track of particular interaction types
+class InteractionType(enum.Enum):
+    follow = 0
+    like = 1
+    comment = 2
+
 # a non automated user engagement
 class Interaction(Base):
 	__tablename__ = 'interaction'
 
 	interaction_id = Column(Integer, primary_key=True, autoincrement=True)
 	media_id = Column(BigInteger, ForeignKey("media.media_id"), nullable=False)
+	interaction_type = Column(Enum(InteractionType), nullable=False)
 	# the account interacted with
 	interacted_id = Column(BigInteger, ForeignKey("instagram_user.instagram_user_id"), nullable=False)
 	# the account that created the interaction
