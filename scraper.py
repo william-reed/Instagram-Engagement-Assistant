@@ -214,7 +214,7 @@ def fetch_comments(media_pks, api, session):
 	return user_pks
 
 # expects to be run as 'python scraper.py calling_user user_to_scan_1 user_to_scan_2 ...'
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=config.DEBUG_LEVEL)
 logger = logging.getLogger("insta_engagement_scraper")
 logger.setLevel(config.DEBUG_LEVEL)
 
