@@ -10,6 +10,7 @@ import sys
 import config
 import models
 import time
+import re
 
 def fetch_users(usernames, caller_username, api, session, force_update=False):
 	"""
@@ -52,6 +53,7 @@ def fetch_users(usernames, caller_username, api, session, force_update=False):
 
 	session.commit()
 	logger.info("Gatered users committed to database")
+	logger.info(pks)
 	return pks
 
 def fetch_user(username, api, session, force_update=False):
@@ -70,7 +72,6 @@ def fetch_user(username, api, session, force_update=False):
 		logger.warn("User '" + username + "' not found")
 		return
 
-	
 	user_pk = user["pk"]
 
 	# does the DB contain the user_pk?
@@ -78,6 +79,7 @@ def fetch_user(username, api, session, force_update=False):
 	if session.query(Instagram_User).get(user_pk) != None and not force_update:
 		# just return the pk since we want to scan this users new posts but don't
 		# want to update their information
+		logger.debug(user["username"] + " already exists in DB. Not updating.")
 		return user_pk
 
 	instagram_user = Instagram_User(instagram_user_id = user["pk"],
@@ -117,11 +119,15 @@ def fetch_media(user_pks, api, session, force_update=False):
 		for medium in media:
 			media_pk = medium["pk"]
 
+			pks.append(media_pk)
+
 			# make sure pk not in db
 			if session.query(Media).get(media_pk) != None and not force_update:
+				# we still want to check for comments at this point so 
+				# append the pk anyway
 				continue
 
-			pks.append(media_pk)
+			
 			is_picture = True if medium['media_type'] == 1 else False
 
 			instagram_media = Media(media_id=media_pk,
@@ -156,6 +162,15 @@ def fetch_comments(media_pks, api, session):
 		api.getMediaComments(str(media_pk))
 
 		comments = api.LastJson["comments"]
+
+		# check if there are more comments to fetch
+		while api.LastJson["has_more_comments"]:
+			logger.debug("Getting more comments for " + str(media_pk))
+			# the next max id to send back
+			server_cursor = re.findall('"([^"]*)"', api.LastJson["next_max_id"])[1]
+			api.getMediaComments(str(media_pk), max_id=server_cursor)
+			comments.extend(api.LastJson["comments"])
+
 		poster_id = session.query(Media).get(media_pk).instagram_user.instagram_user_id
 
 		for comment in comments:
@@ -243,3 +258,4 @@ logging.shutdown()
 # looks like sleeping is dropping ig connections
 # auto setup charset
 # handling posts with lots of comments
+# securing passwords better than environ vars
