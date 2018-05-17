@@ -115,6 +115,9 @@ def fetch_media(user_pks, api, session, force_update=False):
 		api.getUserFeed(user_pk)
 		media = api.LastJson["items"]
 
+		# The user likely has more photos but I am not sure they are relevant
+		# older photos leads to less currently relevant data
+
 		# is medium the singular? probably not...
 		for medium in media:
 			media_pk = medium["pk"]
@@ -126,7 +129,6 @@ def fetch_media(user_pks, api, session, force_update=False):
 				# we still want to check for comments at this point so 
 				# append the pk anyway
 				continue
-
 			
 			is_picture = True if medium['media_type'] == 1 else False
 
@@ -167,9 +169,14 @@ def fetch_comments(media_pks, api, session):
 		while api.LastJson["has_more_comments"]:
 			logger.debug("Getting more comments for " + str(media_pk))
 			# the next max id to send back
+
+			# instagram must have retrofitted their api to backsupport so i have to extract like this
 			server_cursor = re.findall('"([^"]*)"', api.LastJson["next_max_id"])[1]
 			api.getMediaComments(str(media_pk), max_id=server_cursor)
 			comments.extend(api.LastJson["comments"])
+
+			# can't make requests too fast
+			time.sleep(config.SLEEP_TIME)
 
 		poster_id = session.query(Media).get(media_pk).instagram_user.instagram_user_id
 
@@ -257,5 +264,4 @@ logging.shutdown()
 # Auto update if data older than a week?
 # looks like sleeping is dropping ig connections
 # auto setup charset
-# handling posts with lots of comments
 # securing passwords better than environ vars
